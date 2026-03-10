@@ -1,0 +1,72 @@
+name: pet_health_tracker
+description: "Pet Health Tracker - A mobile app for tracking pet health records, vaccinations, medications, and vet visits."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  
+  # State Management
+  provider: ^6.1.2
+  
+  # Local Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  
+  # Firebase (Auth, Firestore, Storage, Messaging)
+  firebase_core: ^3.12.1
+  firebase_auth: ^5.5.3
+  cloud_firestore: ^5.6.7
+  firebase_storage: ^12.4.4
+  firebase_messaging: ^15.2.5
+  
+  # Google Sign In
+  google_sign_in: ^6.2.2
+  
+  # UI Components
+  flutter_slidable: ^3.1.1
+  fl_chart: ^0.70.2
+  cached_network_image: ^3.4.1
+  
+  # Image handling
+  image_picker: ^1.1.2
+  
+  # Notifications
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.0
+  
+  # Date/Time
+  intl: ^0.20.2
+  
+  # Utilities
+  uuid: ^4.5.1
+  path_provider: ^2.1.5
+  shared_preferences: ^2.3.5
+  
+  # File handling
+  file_picker: ^8.1.7
+  
+  # URL launcher
+  url_launcher: ^6.3.1
+  
+  # Permission handling
+  permission_handler: ^11.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
