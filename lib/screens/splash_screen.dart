@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import 'login_screen.dart';
+import '../utils/auth_service.dart';
+import 'get_started_screen.dart';
+import 'dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,6 +16,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -33,14 +36,31 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate to login after 0.5 seconds
+    // Navigate after 0.5 seconds - check auth state
     Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      }
+      _checkAuthAndNavigate();
     });
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    if (!mounted) return;
+    
+    // Check if user is already logged in
+    final isLoggedIn = await _authService.isLoggedIn();
+    
+    if (!mounted) return;
+    
+    if (isLoggedIn) {
+      // User is logged in, navigate to Dashboard
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
+    } else {
+      // User is not logged in, navigate to Get Started screen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const GetStartedScreen()),
+      );
+    }
   }
 
   @override

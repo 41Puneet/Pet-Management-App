@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/auth_service.dart';
 import 'signup_screen.dart';
+import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,21 +15,44 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
-  void _handleLogin() {
+  void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      // Simulate login delay
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Save login state
+      await _authService.saveLoginState(email: _emailController.text);
+      
+      if (!mounted) return;
+      
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Login successful!'),
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: AppTheme.successColor,
         ),
       );
+      
+      // Navigate to Dashboard
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
+      
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  void _handleGoogleSignIn() {
+  void _handleGoogleSignIn() async {
     // Handle Google Sign In
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -243,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: _handleLogin,
+                        onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
                           foregroundColor: Colors.white,
@@ -252,13 +277,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child: const Text(
-                          'Sign In',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Sign In',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     
