@@ -24,31 +24,37 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = true;
       });
-      
-      // Simulate login delay
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // Save login state
-      await _authService.saveLoginState(email: _emailController.text);
-      
+
+      final result = await _authService.login(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
       if (!mounted) return;
-      
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login successful!'),
-          backgroundColor: AppTheme.successColor,
-        ),
-      );
-      
-      // Navigate to Dashboard
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      );
-      
+
       setState(() {
         _isLoading = false;
       });
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+        // Navigate to Dashboard (saveLoginState already called in service)
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Login failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -56,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // Handle Google Sign In
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Google Sign In feature coming soon!'),
+        content: Text('Will work on this'),
         duration: Duration(seconds: 2),
       ),
     );

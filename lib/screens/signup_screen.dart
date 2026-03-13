@@ -3,7 +3,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../theme/app_theme.dart';
 import '../utils/auth_service.dart';
-import 'login_screen.dart';
 import 'dashboard_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -60,39 +59,62 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  void _handleVerifyEmail() {
+  Future<void> _handleVerifyEmail() async {
     if (_formKey.currentState!.validate()) {
-      // Validate email first
-      final email = _emailController.text;
-      if (!email.contains('@') || !email.contains('.')) {
+      setState(() { _isLoading = true; });
+
+      final result = await _authService.signup(
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      setState(() { _isLoading = false; });
+
+      if (result['success'] == true) {
+        setState(() {
+          _isOtpSent = true;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enter a valid email address'),
+          SnackBar(
+            content: Text('${result['message']} (expires in ${result['otpExpiresAt'] ?? 600}s)'),
+            backgroundColor: AppTheme.primaryColor,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Signup failed'),
             backgroundColor: Colors.red,
           ),
         );
-        return;
       }
-      
-      // Show OTP field
-      setState(() {
-        _isOtpSent = true;
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('OTP sent to your email! (Demo: Use 123456)'),
-          backgroundColor: AppTheme.primaryColor,
-          duration: Duration(seconds: 3),
-        ),
-      );
     }
   }
 
-  void _handleVerifyOtp() {
-    // Demo OTP validation - in production, this would verify with backend
+  Future<void> _handleVerifyOtp() async {
     final otp = _otpController.text;
-    if (otp == '123456') {
+    if (otp.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid 6-digit OTP'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() { _isLoading = true; });
+
+    final result = await _authService.verifyEmail(
+      email: _emailController.text,
+      otp: otp,
+    );
+
+    setState(() { _isLoading = false; });
+
+    if (result['success'] == true) {
       setState(() {
         _isOtpVerified = true;
       });
@@ -104,49 +126,54 @@ class _SignupScreenState extends State<SignupScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid OTP. Please try again.'),
+        SnackBar(
+          content: Text(result['message'] ?? 'Invalid OTP'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  void _handleSignup() async {
+  Future<void> _handleSignup() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
-      
-      // Simulate signup delay
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // Save login state - user is now registered and logged in
-      // Include name and profile image path
-      await _authService.saveLoginState(
+
+      final result = await _authService.login(
         email: _emailController.text,
-        name: _nameController.text,
-        profileImage: _profileImagePath,
+        password: _passwordController.text,
       );
-      
+
       if (!mounted) return;
-      
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created successfully!'),
-          backgroundColor: AppTheme.successColor,
-        ),
-      );
-      
-      // Navigate to Dashboard (bypass login since user just signed up)
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      );
-      
-      setState(() {
-        _isLoading = false;
-      });
+
+      if (result['success'] == true) {
+        // Save profile image if picked
+        if (_profileImagePath != null) {
+          await _authService.updateProfileImage(_profileImagePath!);
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Login failed after signup'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
