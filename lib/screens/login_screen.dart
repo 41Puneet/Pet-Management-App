@@ -174,14 +174,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      validator: (value) {
+                     validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
+                               return 'Please enter your email';
+                           }
+
+                        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+                          if (!emailRegex.hasMatch(value)) {
+                            return 'Please enter a valid email';
+                          }
+
+                           return null;
                       },
                     ),
                     
@@ -233,14 +237,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                     validator: (value) {
+                   if (value == null || value.isEmpty) {
+                       return 'Please enter a password';
                         }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
+
+                    if (value.length < 6) {
+                     return 'Password must be at least 6 characters';
+                      }
+
+                    final passwordRegex =
+                      RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$');
+
+                    if (!passwordRegex.hasMatch(value)) {
+                       return 'Password must contain uppercase, lowercase and special character';
+                      }
+
+                    return null;
                       },
                     ),
                     
